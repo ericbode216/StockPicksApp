@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+@theme {
+    --color-cream: #f0eeec;
+    --color-dry-sage: #DAD7CD ;
+    --color-fern: #588157;
+    --color-forest-green: #113628;
+    --color-hunter-green: #3A5A40;
+    --color-pine-teal: #344E41;
+
+}
+
+.form-div {
+    display:grid;
+    grid-template-columns: 150px 300px;
+    grid-gap:5px;
+    margin-bottom: 20px;
+}
+
+.form-div label{
+    text-align: right;
+}
+.form-div label:after{
+    content: ":";
+}
+.form-div input{
+    text-align: left;
+}
+
+.stock-data-div{
+    float: right;
+}
+.index-data-div{
+    text-align: left;
+}
+
+.data-div{
+    display:grid;
+    grid-template-columns:  248px 168px;
+    grid-gap:4px;
+    width: 420px;
+    
+}
+
+.data-div .label{
+    text-align: right;
+    color: #113628;
+}
+.data-div .label:after{
+    content: ":";
+}
+.data-div .info{
+    text-align: left;
+}
+.difference-div{
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+}
