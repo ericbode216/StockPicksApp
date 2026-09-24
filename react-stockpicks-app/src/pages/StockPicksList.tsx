@@ -71,7 +71,7 @@ export const StockPicksList = () => {
     return (
       <>
         <h1>StockPicksList</h1>
-        <p>Loading...</p>;
+        <p>Loading...</p>
       </>
     )
   }
@@ -99,11 +99,11 @@ export const StockPicksList = () => {
 
   return (
     <main className="mt-15 mb-10">
-        <h1 className="text-fern">Stock Picks List</h1>
-        <button className="bg-blue-500 text-white text-lg w-24 border rounded-md border-transparent hover:bg-blue-600 m-4" onClick={()=>filterStocks("all")}>All</button>
-        <button className="bg-blue-500 text-white text-lg w-24 border rounded-md border-transparent hover:bg-blue-600 m-4" onClick={()=>filterStocks("oneyear")}>Year +</button>
-        <button className="bg-blue-500 text-white text-lg w-24 border rounded-md border-transparent hover:bg-blue-600 m-4"onClick={()=>filterStocks("threeyear")}>3 Years +</button>
-        <button className="bg-blue-500 text-white text-lg w-24 border rounded-md border-transparent hover:bg-blue-600 m-4"onClick={()=>updateAllStocks()}>Update All</button>
+        <h1 className="text-hunter-green">Stock Picks List</h1>
+        <button className="bg-hunter-green text-white text-lg w-24 rounded-md hover:bg-hunter-green-dark hover:cursor-pointer m-4" onClick={()=>filterStocks("all")}>All</button>
+        <button className="bg-hunter-green text-white text-lg w-24 rounded-md hover:bg-hunter-green-dark hover:cursor-pointer m-4" onClick={()=>filterStocks("oneyear")}>Year +</button>
+        <button className="bg-hunter-green text-white text-lg w-24 rounded-md hover:bg-hunter-green-dark hover:cursor-pointer m-4"onClick={()=>filterStocks("threeyear")}>3 Years +</button>
+        <button className="bg-hunter-green text-white text-lg w-24 rounded-md hover:bg-hunter-green-dark hover:cursor-pointer m-4"onClick={()=>updateAllStocks()}>Update All</button>
         <div className="justify-center">
         {stockPicksShown.map((stockPick)=>
           <div key={stockPick.id}>

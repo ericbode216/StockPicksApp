@@ -4,32 +4,26 @@ public static class ExtensionsPickReasonsMapping
 {
     public static void mapPickReasonsEndpoints(this WebApplication app)
     {
+        
         app.MapGet(
-            "/test2",
-            () =>
+            "/api/reasons",
+            async (IPickReasonsService pickReasonsService) =>
             {
-                return Results.Ok("Test 2 Successful");
+                return Results.Ok(await pickReasonsService.GetAll());
             }
         );
         app.MapGet(
-            "/allpickreasons",
-            async (IPickReasonsRepository repository) =>
+            "/api/stock-picks/{stockPickId:int}/reasons",
+            async (int stockPickId, IPickReasonsService pickReasonsService) =>
             {
-                return Results.Ok(await repository.GetAll());
-            }
-        );
-        app.MapGet(
-            "/stockpick/{stockPickId:int}/pickreasons",
-            async (int stockPickId, IPickReasonsRepository repository) =>
-            {
-                return Results.Ok(await repository.Get(stockPickId));
+                return Results.Ok(await pickReasonsService.GetByStockId(stockPickId));
             }
         );
         app.MapPost(
-            "/stockpick/{stockPickId:int}/pickreasons",
-            async([FromBody] PickReasonEntity pickReason, int stockPickId, IPickReasonsRepository repository) =>
+            "/api/stock-picks/{stockPickId:int}/reasons",
+            async([FromBody] PickReasonDto pickReason, int stockPickId, IPickReasonsService pickReasonsService) =>
             {
-                return Results.Ok(await repository.Add(pickReason));
+                return Results.Ok(await pickReasonsService.Add(pickReason));
             }
         );
     }

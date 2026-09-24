@@ -11,7 +11,8 @@ export const AddPickReason = ({stockId, fetchPickReasons}: Props) => {
   const pickReasonStart:PickReason = {
     id: 0,
     stockId: stockId,
-    reason: ""
+    reason: "",
+    date: new Date().toDateString()
   }
   const [pickReasonState, setPickReasonState] = useState(pickReasonStart);
 
@@ -20,6 +21,7 @@ export const AddPickReason = ({stockId, fetchPickReasons}: Props) => {
     console.log("id:" + pickReasonState.id);
     console.log("stock id:" + pickReasonState.stockId);
     console.log("reason:" + pickReasonState.reason);
+    setPickReasonState({...pickReasonState, date: new Date().toDateString()});
     await postData('http://localhost:5198/stockpick/1/pickreasons', pickReasonState);
     fetchPickReasons();
 
@@ -52,13 +54,16 @@ export const AddPickReason = ({stockId, fetchPickReasons}: Props) => {
           <input 
             type="text"
             id="pick-reason"
-            placeholder="pick reason"
+            placeholder="add pick reason to submit"
             value={pickReasonState.reason}
             onChange={(e)=>setPickReasonState({...pickReasonState, reason:(e.target.value)})}
             className="bg-white border rounded-sm"
           />
         </div>
-        <button className="bg-blue-500 text-white text-lg w-24 border rounded-md border-transparent hover:bg-blue-600" onClick={onSubmit}>Submit</button>
+        <button className="bg-hunter-green text-white text-lg w-40 rounded-md hover:bg-hunter-green-dark hover:cursor-pointer mb-2 disabled:bg-hunter-green-light" 
+                onClick={onSubmit}
+                disabled = {!pickReasonState.reason}
+        >Submit</button>
       </form>
       </div>
   )

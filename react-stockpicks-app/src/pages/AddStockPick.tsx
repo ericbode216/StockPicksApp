@@ -1,8 +1,6 @@
 import { useState } from "react";
 import type { StockPickAdd } from "../types/StockPickAdd";
-import { parseISO } from "date-fns";
-import { UsePost } from "../hooks/UsePostStockPick";
-import type { StockPick } from "../types/StockPick";
+import { useNavigate } from "react-router";
 
 
 export const AddStockPick = () => {
@@ -13,32 +11,44 @@ export const AddStockPick = () => {
     indexTicker: ""
   }
   const [stockPickState, setStockPickState] = useState(stockPickStart);
+  const nav = useNavigate();
+
+  const [apiError, setApiError] = useState(false);
   const onSubmit = async(e: React.MouseEvent)=>{
     e.preventDefault();
     postData('http://localhost:5198/stocks', stockPickState);
+    
+    
+
   }
 
   const postData = async(url:string,stockPick:StockPickAdd)=>{
-        try{
-            const response = await fetch(url, {
-                method:"POST",
-                headers: {
-                    'Content-Type': 'application/json' // Declare the content type
-                },
-                body:JSON.stringify(stockPick)
-            });
-            const data1 = await response.json();
-            if (!response.ok) {
-                throw Error(`HTTP error! status: ${response.status}`);
-            }
-            
-        }catch(err:unknown){
-            console.log(err as Error);
-        }
-    }
+        
+    const response = await fetch(url, {
+        method:"POST",
+        headers: {
+            'Content-Type': 'application/json' // Declare the content type
+        },
+        body:JSON.stringify(stockPick)
+    });
+    console.log("response");
+    console.log(response);
+    if (!response.ok) {
+        console.log("API POST Error");
+        setApiError(true);
+    }else{
+      const data1 = await response.json();
+      setApiError(false);
+      nav("/");
+    }    
+  }
   return (
     <main className="mt-15">
-      <h1 className="text-fern">Add Stock Pick</h1>
+      <h1 className="text-hunter-green">Add Stock Pick</h1>
+      {apiError && <div className="mb-4 text-red-600">
+        <p>Invalid Stock Pick. Date or Ticker could not be found.</p>
+      </div>
+      }
       <form className="w-100 m-auto">
 
         <div className="form-div">
@@ -73,7 +83,11 @@ export const AddStockPick = () => {
             className="bg-white border rounded-sm"
           />
         </div>
-        <button className="bg-blue-500 text-white text-lg w-24 border rounded-md border-transparent hover:bg-blue-600" onClick={onSubmit}>Submit</button>
+        <button 
+          className="bg-hunter-green text-white text-lg w-40 rounded-md hover:bg-hunter-green-dark hover:cursor-pointer mb-2 disabled:bg-hunter-green-light" 
+          onClick={onSubmit}
+          disabled = {!stockPickState.stockTicker || !stockPickState.stockBuyDate || !stockPickState.indexTicker}
+        >Submit</button>
         
       </form>
     </main>

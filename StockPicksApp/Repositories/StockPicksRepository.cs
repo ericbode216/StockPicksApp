@@ -3,22 +3,27 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-public interface IStockPicksRepositiory
+public interface IStockPicksRepository
 {
     Task<List<StockPickEntity>> GetAll();
-    Task<StockPickEntity> Get(int id);
-    Task<StockPickEntity> Add(StockPickAddDto stockPickDto);
-    Task<StockPickEntity> Update(StockPickUpdateDto stockPick);
+    Task<StockPickEntity> GetById(int id);
+    Task<StockPickEntity> Add(StockPickEntity stockPick);
+    Task<StockPickEntity> Update(StockPickEntity stockPick);
     Task<StockPickEntity> Delete(int id);
 }
 
-public class StockPicksRepository : IStockPicksRepositiory
+public class StockPicksRepository : IStockPicksRepository
 {
+
+    private static string _token = string.Empty;
+
+
     private readonly StockPicksDbContext context;
 
-    public StockPicksRepository(StockPicksDbContext context)
+    public StockPicksRepository(StockPicksDbContext context, IConfiguration configuration)
     {
         this.context = context;
+        _token= configuration["TiingoToken"];
     }
 
     public async Task<List<StockPickEntity>> GetAll()
@@ -26,70 +31,24 @@ public class StockPicksRepository : IStockPicksRepositiory
         return await context.StockPicks.ToListAsync();
     }
 
-    public async Task<StockPickEntity> Get(int id)
+    public async Task<StockPickEntity> GetById(int id)
     {
         return await context.StockPicks.SingleOrDefaultAsync(s => s.Id == id);
     }
 
-    public async Task<StockPickEntity> Add(StockPickAddDto stockPickDto)
+    public async Task<StockPickEntity> Add(StockPickEntity stockPick)
     {
-        var entity = new StockPickEntity();
-        entity.StockTicker = stockPickDto.StockTicker;
-        entity.StockBuyDate = DateTime.Parse(stockPickDto.StockBuyDate);
-
-        ////Call 3rd Paty API
-        entity.StockBuyPrice = await GetHistoricalPriceTiingo(
-            entity.StockTicker,
-            entity.StockBuyDate
-        );
-        entity.IndexTicker = stockPickDto.IndexTicker;
-        entity.IndexBuyPrice = await GetHistoricalPriceTiingo(
-            entity.IndexTicker,
-            entity.StockBuyDate
-        );
-
-        ////Call 3rd Paty API
-        entity.StockCurrentPrice = await GetLatestPriceTiingo(entity.StockTicker);
-        entity.IndexCurrentPrice = await GetLatestPriceTiingo(entity.IndexTicker);
-
-        entity.StockCurrentDate = DateTime.Now;
-        DoPercentCalculations(entity);
-
-        context.Add(entity);
+        context.Add(stockPick);
         await context.SaveChangesAsync();
-        return entity;
+        return stockPick;
     }
 
-    public async Task<StockPickEntity> Update(StockPickUpdateDto stockPickDto)
+    public async Task<StockPickEntity> Update(StockPickEntity stockPick)
     {
-        var foundStockPick = await context.StockPicks.FindAsync(stockPickDto.Id);
-        if (foundStockPick == null)
-        {
-            throw new ArgumentException($"Error updating stockpick {stockPickDto.Id}");
-        }
-        foundStockPick.StockTicker = stockPickDto.StockTicker;
-        foundStockPick.StockBuyDate = DateTime.Parse(stockPickDto.StockBuyDate);
-        foundStockPick.IndexTicker = stockPickDto.IndexTicker;
-
-        ////Call 3rd Paty API
-        foundStockPick.StockBuyPrice = await GetHistoricalPriceTiingo(
-            foundStockPick.StockTicker,
-            foundStockPick.StockBuyDate
-        );
-        foundStockPick.IndexBuyPrice = await GetHistoricalPriceTiingo(
-            foundStockPick.IndexTicker,
-            foundStockPick.StockBuyDate
-        );
-
-        //Call 3rd Paty API
-        foundStockPick.StockCurrentPrice = await GetLatestPriceTiingo(foundStockPick.StockTicker);
-        foundStockPick.IndexCurrentPrice = await GetLatestPriceTiingo(foundStockPick.IndexTicker);
-        foundStockPick.StockCurrentDate = DateTime.Now;
-        DoPercentCalculations(foundStockPick);
-
-        context.Entry(foundStockPick).State = EntityState.Modified;
-        await context.SaveChangesAsync();
-        return foundStockPick;
+        context.Entry(stockPick).State = EntityState.Modified;
+        context.Update(stockPick);
+        //await context.SaveChangesAsync();
+        return stockPick;
     }
 
     public async Task<StockPickEntity> Delete(int stockId)
@@ -111,7 +70,7 @@ public class StockPicksRepository : IStockPicksRepositiory
         {
             // Send the GET request to a specific endpoint (e.g., .NET Foundation repositories)
             HttpResponseMessage response = await client.GetAsync(
-                $"/tiingo/daily/{stockTicker}/prices?token=619f1b00679d6398aba5fe0125f7a298ce8bd7cc"
+                $"/tiingo/daily/{stockTicker}/prices?token={_token}"
             );
             // Check if the request was successful
             response.EnsureSuccessStatusCode();
@@ -150,16 +109,22 @@ public class StockPicksRepository : IStockPicksRepositiory
 
             // Send the GET request to a specific endpoint (e.g., .NET Foundation repositories)
             HttpResponseMessage response = await client.GetAsync(
-                $"/tiingo/daily/{stockTicker}/prices?&startDate={stockBuyDate.ToString("yyyy-MM-dd")}&endDate={buyDatePlus7.ToString("yyyy-MM-dd")}&token=619f1b00679d6398aba5fe0125f7a298ce8bd7cc"
+                $"/tiingo/daily/{stockTicker}/prices?&startDate={stockBuyDate.ToString("yyyy-MM-dd")}&endDate={buyDatePlus7.ToString("yyyy-MM-dd")}&token={_token}"
             );
             // Check if the request was successful
             response.EnsureSuccessStatusCode();
+            
 
             // Read the response content as a string
             string responseBody = await response.Content.ReadAsStringAsync();
 
             //deserializes array of json objects
             var list = JsonSerializer.Deserialize<List<TiingoHistoricalPrice>>(responseBody);
+            if (list.Count == 0)
+            {
+                //no price data from tiingo
+                return -1;
+            }
 
             //used to get first object
             TiingoHistoricalPrice tiingoHistoricalPrice = list.Find(x => x.close != null);

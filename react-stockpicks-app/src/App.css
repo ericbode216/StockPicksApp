@@ -5,7 +5,9 @@
     --color-dry-sage: #DAD7CD ;
     --color-fern: #588157;
     --color-forest-green: #113628;
+    --color-hunter-green-light: #899C8C;
     --color-hunter-green: #3A5A40;
+    --color-hunter-green-dark: #233626;
     --color-pine-teal: #344E41;
 
 }
@@ -52,7 +54,7 @@
 .data-div .info{
     text-align: left;
 }
-.difference-div{
+.date-side-div{
     display: grid;
     grid-template-columns: 1fr auto 1fr;
 }

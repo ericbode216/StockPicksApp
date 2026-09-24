@@ -39,7 +39,7 @@ export const StockPickCard = ({stockPick, updateStock}: Props) => {
     return (
       <div key={stockPick.id}>
         <h1>StockPicksList</h1>
-        <p>Loading...</p>;
+        <p>Loading...</p>
       </div>
     )
     }
@@ -71,7 +71,7 @@ export const StockPickCard = ({stockPick, updateStock}: Props) => {
   return (
     <div className={`justify-center mb-6 border rounded-md overflow-hidden ${stockPick.stockTotalPercentGain && stockPick.indexTotalPercentGain&& (stockPick.stockTotalPercentGain-stockPick.indexTotalPercentGain)>= 0?"bg-green-100":"bg-red-100"}`}>
         <h2>{stockPick.stockTicker} bought on {convertToDate(stockPick.stockBuyDate).getMonth() +1 }/{convertToDate(stockPick.stockBuyDate).getDate()}/{convertToDate(stockPick.stockBuyDate).getFullYear()}</h2>
-        <div className="difference-div">
+        <div className="date-side-div">
             <div className="col-start-2">
                 {dateDiffNumDays(convertToDate(stockPick.stockCurrentDate),convertToDate(stockPick.stockBuyDate))> 365?
                 <p>annual return diff: {stockPick.stockAnnualPercentGain && stockPick.indexAnnualPercentGain && (stockPick.stockAnnualPercentGain-stockPick.indexAnnualPercentGain).toFixed(2)}%</p>
@@ -83,7 +83,7 @@ export const StockPickCard = ({stockPick, updateStock}: Props) => {
             </div>
             <div className="text-right pr-2">
                 <p>last updated: {convertToDate(stockPick.stockCurrentDate).getMonth() +1 }/{convertToDate(stockPick.stockCurrentDate).getDate()}/{convertToDate(stockPick.stockCurrentDate).getFullYear()}</p>
-                <button className="bg-blue-500 text-white text-lg w-24 border rounded-md border-transparent hover:bg-blue-600 mt-2" onClick={()=>updateStock(stockPick)}>Update</button>
+                <button className="bg-hunter-green text-white text-lg w-24 rounded-md hover:bg-hunter-green-dark hover:cursor-pointer mt-2" onClick={()=>updateStock(stockPick)}>Update</button>
             </div>
         </div>
         <br/>
@@ -134,18 +134,33 @@ export const StockPickCard = ({stockPick, updateStock}: Props) => {
                 </div>
             </div>
         </div>
-        <div className="bg-yellow-100">
+        <div className="">
         <h2>Original Thesis:</h2>
         {(pickReasons.length > 0)? 
-            <p key={pickReasons[0].id}>{pickReasons[0].reason}</p>
+            <div key={pickReasons[0].id} className="date-side-div m-2 bg-yellow-50">
+                <div className="text-left pl-2">
+                    <p>{convertToDate(pickReasons[0].date).getMonth() +1 }/{convertToDate(pickReasons[0].date).getDate()}/{convertToDate(pickReasons[0].date).getFullYear()}</p>
+                </div>
+                <div className="col-start-2">
+                    <p>{pickReasons[0].reason}</p>
+                </div>
+            </div>
             :
             <p>No reasoning entered.</p>
         }
         {(pickReasons.length > 1)?
         <>
         <h2>Updated Reasoning:</h2>
-        {pickReasons.toSpliced(0,1).map((p)=>
-            <p key={p.id}>{p.reason}</p>
+        {pickReasons.toSpliced(0,1).map((p: PickReason)=>
+            <div key={p.id} className="date-side-div m-2 bg-yellow-50">
+                <div className="text-left pl-2">
+                    <p>{convertToDate(p.date).getMonth() +1 }/{convertToDate(p.date).getDate()}/{convertToDate(p.date).getFullYear()}: </p>
+                </div>
+                <div className="col-start-2">
+                    <p>{p.reason}</p>
+                </div>
+            </div>
+            
         )}
         </>
         :
@@ -153,7 +168,7 @@ export const StockPickCard = ({stockPick, updateStock}: Props) => {
         }
         </div>
         <div>
-            <button className="bg-blue-500 text-white text-lg w-40 border rounded-md border-transparent hover:bg-blue-600 mt-2" onClick={()=>setShowReasoningForm(!showReasoningForm)}>Add Reasoning</button>
+            <button className="bg-hunter-green text-white text-lg w-40 rounded-md hover:bg-hunter-green-dark hover:cursor-pointer mb-2" onClick={()=>setShowReasoningForm(!showReasoningForm)}>Add Reasoning</button>
             {(showReasoningForm)?
             <AddPickReason stockId={stockPick.id} fetchPickReasons={fetchPickReasons}/>
             :

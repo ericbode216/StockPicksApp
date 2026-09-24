@@ -3,8 +3,8 @@ using Microsoft.EntityFrameworkCore;
 public interface IPickReasonsRepository
 {
     Task<List<PickReasonEntity>> GetAll();
-    Task<List<PickReasonEntity>> Get(int stockPickId);
-    Task<PickReasonEntity> Add(PickReasonEntity pickReason);
+    Task<List<PickReasonEntity>> GetByStockId(int stockPickId);
+    Task<PickReasonEntity> Add(PickReasonEntity pickReasonEntity);
     Task<PickReasonEntity> Update(PickReasonEntity pickReason);
     Task<PickReasonEntity> Delete(int id);
 }
@@ -22,32 +22,24 @@ public class PickReasonsRepository : IPickReasonsRepository
         return await context.PickReasons.ToListAsync();
     }
 
-    public async Task<List<PickReasonEntity>> Get(int stockPickId)
+    public async Task<List<PickReasonEntity>> GetByStockId(int stockPickId)
     {
         return await context.PickReasons.Where(p => p.StockId == stockPickId).ToListAsync();
     }
 
     public async Task<PickReasonEntity> Add(PickReasonEntity pickReason)
     {
-        var entity = new PickReasonEntity();
-        entity.StockId = pickReason.StockId;
-        entity.Reason = pickReason.Reason;
-
-        context.Add(entity);
+        context.Add(pickReason);
         await context.SaveChangesAsync();
-        return entity;
+        return pickReason;
     }
 
-    public Task<PickReasonEntity> Delete(int id)
+    public Task<PickReasonEntity> Update(PickReasonEntity pickReason)
     {
         throw new NotImplementedException();
     }
 
-    
-
-    
-
-    public Task<PickReasonEntity> Update(PickReasonEntity pickReason)
+    public Task<PickReasonEntity> Delete(int id)
     {
         throw new NotImplementedException();
     }

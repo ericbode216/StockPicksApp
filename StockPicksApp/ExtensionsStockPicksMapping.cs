@@ -5,24 +5,17 @@ public static class ExtensionsStockPicksMapping
     public static void mapStockPicksEndpoints(this WebApplication app)
     {
         app.MapGet(
-            "/test",
-            () =>
+            "/api/stock-picks",
+            async (IStockPicksService service) =>
             {
-                return Results.Ok("Test Successful");
+                return Results.Ok(await service.GetAll());
             }
         );
         app.MapGet(
-            "/stocks",
-            async (IStockPicksRepositiory repository) =>
+            "api/stock-picks{stockId:int}",
+            async (int stockId, IStockPicksService service) =>
             {
-                return Results.Ok(await repository.GetAll());
-            }
-        );
-        app.MapGet(
-            "/stocks/{stockId:int}",
-            async (int stockId, IStockPicksRepositiory repository) =>
-            {
-                var stockPick = await repository.Get(stockId);
+                var stockPick = await service.GetById(stockId);
                 if (stockPick == null)
                 {
                     return Results.Problem($"Stock with ID {stockId} not found", statusCode: 404);
@@ -34,18 +27,23 @@ public static class ExtensionsStockPicksMapping
             }
         );
         app.MapPost(
-            "/stocks",
-            async ([FromBody] StockPickAddDto stockPickDto, IStockPicksRepositiory repository) =>
+            "/api/stock-picks",
+            async ([FromBody] StockPickAddDto stockPickDto, IStockPicksService service) =>
             {
-                var stockAdded = await repository.Add(stockPickDto);
-                return stockAdded;
+                try{
+                    var stockAdded = await service.Add(stockPickDto);
+                    return Results.Ok(stockAdded);
+                }catch(ArgumentException e){
+                    Console.WriteLine(e.Message);
+                    return  Results.BadRequest(e.Message);
+                }
             }
         );
         app.MapPut(
-            "/stocks",
-            async ([FromBody] StockPickUpdateDto stockPickDto, IStockPicksRepositiory repository) =>
+            "/api/stock-picks",
+            async ([FromBody] StockPickUpdateDto stockPickDto, IStockPicksService service) =>
             {
-                var stockPick = await repository.Get(stockPickDto.Id);
+                var stockPick = await service.GetById(stockPickDto.Id);
                 if (stockPick == null)
                 {
                     return Results.Problem(
@@ -55,14 +53,15 @@ public static class ExtensionsStockPicksMapping
                 }
                 else
                 {
-                    var updatedStockPick = await repository.Update(stockPickDto);
+                    var updatedStockPick = await service.Update(stockPickDto);
                     return Results.Ok(updatedStockPick);
                 }
             }
         );
+        
         app.MapDelete(
-            "/stocks/{stockId:int}",
-            async (int stockId, IStockPicksRepositiory repository) => 
+            "/api/stock-picks/{stockId:int}",
+            async (int stockId, IStockPicksRepository repository) => 
         {
             var entityDeleted = await repository.Delete(stockId);
             return Results.Ok(entityDeleted);
