@@ -9,13 +9,12 @@ public interface IStockPicksRepository
     Task<StockPickEntity> GetById(int id);
     Task<StockPickEntity> Add(StockPickEntity stockPick);
     Task<StockPickEntity> Update(StockPickEntity stockPick);
-    Task<StockPickEntity> Delete(int id);
+    Task<StockPickEntity> Delete(StockPickEntity stockPick);
 }
 
 public class StockPicksRepository : IStockPicksRepository
 {
 
-    private static string _token = string.Empty;
 
 
     private readonly StockPicksDbContext context;
@@ -23,7 +22,6 @@ public class StockPicksRepository : IStockPicksRepository
     public StockPicksRepository(StockPicksDbContext context, IConfiguration configuration)
     {
         this.context = context;
-        _token= configuration["TiingoToken"];
     }
 
     public async Task<List<StockPickEntity>> GetAll()
@@ -46,121 +44,16 @@ public class StockPicksRepository : IStockPicksRepository
     public async Task<StockPickEntity> Update(StockPickEntity stockPick)
     {
         context.Entry(stockPick).State = EntityState.Modified;
-        context.Update(stockPick);
-        //await context.SaveChangesAsync();
+        context.StockPicks.Update(stockPick);
+        await context.SaveChangesAsync();
         return stockPick;
     }
 
-    public async Task<StockPickEntity> Delete(int stockId)
+    public async Task<StockPickEntity> Delete(StockPickEntity stockPick)
     {
-        var entity = await context.StockPicks.FindAsync(stockId);
-        context.Remove(entity);
+        Console.WriteLine("inside repository delete");
+        context.StockPicks.Remove(stockPick);
         await context.SaveChangesAsync();
-        return entity;
-    }
-
-    public static async Task<decimal> GetLatestPriceTiingo(string stockTicker)
-    {
-        using var client = new HttpClient();
-        client.BaseAddress = new Uri("https://api.tiingo.com");
-
-        client.DefaultRequestHeaders.UserAgent.ParseAdd("Csharp-Sample-App");
-
-        try
-        {
-            // Send the GET request to a specific endpoint (e.g., .NET Foundation repositories)
-            HttpResponseMessage response = await client.GetAsync(
-                $"/tiingo/daily/{stockTicker}/prices?token={_token}"
-            );
-            // Check if the request was successful
-            response.EnsureSuccessStatusCode();
-
-            // Read the response content as a string
-            string responseBody = await response.Content.ReadAsStringAsync();
-
-            //deserializes array of json objects
-            var list = JsonSerializer.Deserialize<List<TiingoLatestPrice>>(responseBody);
-
-            //used to get first object
-            TiingoLatestPrice tiingoLatestPrice = list.Find(x => x.adjClose != null);
-
-            return Convert.ToDecimal(tiingoLatestPrice.adjClose);
-        }
-        catch (HttpRequestException e)
-        {
-            return -1;
-        }
-    }
-
-    public static async Task<decimal> GetHistoricalPriceTiingo(
-        string stockTicker,
-        DateTime stockBuyDate
-    )
-    {
-        using var client = new HttpClient();
-        client.BaseAddress = new Uri("https://api.tiingo.com");
-
-        client.DefaultRequestHeaders.UserAgent.ParseAdd("Csharp-Sample-App");
-
-        try
-        {
-            //stock exchange closed some days. 7 days should ensure the stock exchange was open at least one day
-            DateTime buyDatePlus7 = stockBuyDate.AddDays(7);
-
-            // Send the GET request to a specific endpoint (e.g., .NET Foundation repositories)
-            HttpResponseMessage response = await client.GetAsync(
-                $"/tiingo/daily/{stockTicker}/prices?&startDate={stockBuyDate.ToString("yyyy-MM-dd")}&endDate={buyDatePlus7.ToString("yyyy-MM-dd")}&token={_token}"
-            );
-            // Check if the request was successful
-            response.EnsureSuccessStatusCode();
-            
-
-            // Read the response content as a string
-            string responseBody = await response.Content.ReadAsStringAsync();
-
-            //deserializes array of json objects
-            var list = JsonSerializer.Deserialize<List<TiingoHistoricalPrice>>(responseBody);
-            if (list.Count == 0)
-            {
-                //no price data from tiingo
-                return -1;
-            }
-
-            //used to get first object
-            TiingoHistoricalPrice tiingoHistoricalPrice = list.Find(x => x.close != null);
-
-            return Convert.ToDecimal(tiingoHistoricalPrice.close);
-        }
-        catch (HttpRequestException e)
-        {
-            return -1;
-        }
-    }
-
-    public void DoPercentCalculations(StockPickEntity entity)
-    {
-        entity.StockTotalPercentGain = (entity.StockCurrentPrice / entity.StockBuyPrice - 1) * 100;
-        entity.IndexTotalPercentGain = (entity.IndexCurrentPrice / entity.IndexBuyPrice - 1) * 100;
-
-        TimeSpan ts = entity.StockCurrentDate.Subtract(entity.StockBuyDate);
-
-        decimal years = ts.Days / 365M;
-        Console.WriteLine("years: " + years);
-
-        entity.StockAnnualPercentGain =
-            (decimal)(
-                Math.Pow(
-                    (double)(entity.StockCurrentPrice / entity.StockBuyPrice),
-                    (double)(1 / years)
-                ) - 1
-            ) * 100;
-
-        entity.IndexAnnualPercentGain =
-            (decimal)(
-                Math.Pow(
-                    (double)(entity.IndexCurrentPrice / entity.IndexBuyPrice),
-                    (double)(1 / years)
-                ) - 1
-            ) * 100;
+        return stockPick;
     }
 }

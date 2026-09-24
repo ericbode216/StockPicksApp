@@ -61,9 +61,10 @@ public static class ExtensionsStockPicksMapping
         
         app.MapDelete(
             "/api/stock-picks/{stockId:int}",
-            async (int stockId, IStockPicksRepository repository) => 
+            async (int stockId, IStockPicksService service) => 
         {
-            var entityDeleted = await repository.Delete(stockId);
+            Console.WriteLine("Inside mapping");
+            var entityDeleted = await service.Delete(stockId);
             return Results.Ok(entityDeleted);
         });
     }

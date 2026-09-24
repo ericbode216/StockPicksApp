@@ -64,11 +64,9 @@ public class StockPicksService : IStockPicksService
     public async Task<StockPickEntity> Update(StockPickUpdateDto stockPickDto)
     {
         var foundStockPick = await repository.GetById(stockPickDto.Id);
-        Console.WriteLine("id: " + foundStockPick.Id);
-        Console.WriteLine("date: " + foundStockPick.StockBuyDate);
         if (foundStockPick == null)
         {
-            throw new ArgumentException($"Error updating stockpick {stockPickDto.Id}");
+            throw new ArgumentException($"Error updating stockpick with id: {stockPickDto.Id}");
         }
         foundStockPick.StockTicker = stockPickDto.StockTicker;
         foundStockPick.StockBuyDate = DateTime.Parse(stockPickDto.StockBuyDate);
@@ -95,9 +93,17 @@ public class StockPicksService : IStockPicksService
 
 
     }
-    public Task<StockPickEntity> Delete(int id)
+    public async Task<StockPickEntity> Delete(int id)
     {
-        throw new NotImplementedException();
+        Console.WriteLine("Inside service");
+        var foundStockPick = await repository.GetById(id);
+        if (foundStockPick == null)
+        {
+            throw new ArgumentException($"Error deleting stockpick with id: {id}");
+        }
+        Console.WriteLine("Inside service after if");
+        return await repository.Delete(foundStockPick);
+
     }
 
    

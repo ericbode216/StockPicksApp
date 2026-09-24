@@ -80,7 +80,7 @@ public class MarketDataService : IMarketDataService
 
             return Convert.ToDecimal(tiingoLatestPrice.adjClose);
         }
-        catch (HttpRequestException e)
+        catch
         {
             return -1;
         }
